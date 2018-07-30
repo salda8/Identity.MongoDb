@@ -12,8 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.MongoDb", "Identit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.MongoDb.Tests", "Identity.MongoDb.Tests\Identity.MongoDb.Tests.csproj", "{74B5AE98-0964-4281-BE1E-35389DFDD5B5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentitySample.Mvc", "IdentitySample.Mvc\IdentitySample.Mvc.csproj", "{ECD9BD96-4473-4D89-8A88-6192CC959538}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.MongoDb.Sample", "Identity.MongoDb.Sample\Identity.MongoDb.Sample.csproj", "{9E15568A-6000-4CD3-8CEA-F88EB208BD46}"
 EndProject
 Global
@@ -30,9 +28,6 @@ Global
 		{74B5AE98-0964-4281-BE1E-35389DFDD5B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74B5AE98-0964-4281-BE1E-35389DFDD5B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74B5AE98-0964-4281-BE1E-35389DFDD5B5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ECD9BD96-4473-4D89-8A88-6192CC959538}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ECD9BD96-4473-4D89-8A88-6192CC959538}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ECD9BD96-4473-4D89-8A88-6192CC959538}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9E15568A-6000-4CD3-8CEA-F88EB208BD46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9E15568A-6000-4CD3-8CEA-F88EB208BD46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E15568A-6000-4CD3-8CEA-F88EB208BD46}.Release|Any CPU.ActiveCfg = Release|Any CPU
