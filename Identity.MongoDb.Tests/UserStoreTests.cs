@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Identity.MongoDb.Tests.Common;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Identity.MongoDb.Tests
@@ -15,7 +16,9 @@ namespace Identity.MongoDb.Tests
             using (var dbProvider = MongoDbServerTestUtils.CreateDatabase())
             {
                 MongoIdentityUser user;
-                using (var userStore = new MongoUserStore<MongoIdentityUser>(dbProvider.Database) as IUserStore<MongoIdentityUser>)
+                 var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database= System.Guid.NewGuid().ToString() });
+               
+                using (var userStore = new MongoUserStore<MongoIdentityUser>(options) as IUserStore<MongoIdentityUser>)
                 {
                     user = new MongoIdentityUser(TestUtils.RandomString(10));
 

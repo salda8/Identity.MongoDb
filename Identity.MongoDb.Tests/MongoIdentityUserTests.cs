@@ -8,6 +8,7 @@ using Identity.MongoDb.Tests.Common;
 using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Identity.MongoDb;
+using Microsoft.Extensions.Options;
 
 namespace Identity.MongoDb.Tests
 {
@@ -28,7 +29,8 @@ namespace Identity.MongoDb.Tests
 
             using (var dbProvider = MongoDbServerTestUtils.CreateDatabase())
             {
-                using (var store = new MongoUserStore<MyIdentityUser>(dbProvider.Database))
+                var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
+                using (var store = new MongoUserStore<MyIdentityUser>(options))
                 {
 
                     // ACT, ASSERT
@@ -59,10 +61,12 @@ namespace Identity.MongoDb.Tests
             var lockoutEndDate = new DateTime(2017, 2, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(8996910);
             var user = new MongoIdentityUser(TestUtils.RandomString(10));
             user.LockUntil(lockoutEndDate);
+            
 
             using (var dbProvider = MongoDbServerTestUtils.CreateDatabase())
             {
-                using (var store = new MongoUserStore<MongoIdentityUser>(dbProvider.Database))
+                 var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
+                using (var store = new MongoUserStore<MongoIdentityUser>(options))
                 {
 
                     // ACT
