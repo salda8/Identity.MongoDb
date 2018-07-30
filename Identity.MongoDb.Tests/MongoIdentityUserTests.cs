@@ -27,9 +27,7 @@ namespace Identity.MongoDb.Tests
             user.AddClaim(new Claim(ClaimTypes.Country, countryName));
             user.AddLogin(new MongoUserLogin(new UserLoginInfo(loginProvider, providerKey, displayName)));
 
-            using (var dbProvider = MongoDbServerTestUtils.CreateDatabase())
-            {
-                var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
+            var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
                 using (var store = new MongoUserStore<MyIdentityUser>(options))
                 {
 
@@ -51,7 +49,7 @@ namespace Identity.MongoDb.Tests
                     Assert.NotNull(retrievedLoginProvider);
                     Assert.Equal(providerKey, retrievedLoginProvider.ProviderKey);
                     Assert.Equal(displayName, retrievedLoginProvider.ProviderDisplayName);
-                }
+                
             }
         }
 
@@ -59,14 +57,13 @@ namespace Identity.MongoDb.Tests
         public async Task MongoIdentityUser_ShouldSaveAndRetrieveTheFutureOccuranceCorrectly()
         {
             var lockoutEndDate = new DateTime(2017, 2, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(8996910);
-            var user = new MongoIdentityUser(TestUtils.RandomString(10));
+            var user = new MyIdentityUser(TestUtils.RandomString(10));
             user.LockUntil(lockoutEndDate);
             
 
-            using (var dbProvider = MongoDbServerTestUtils.CreateDatabase())
-            {
+         
                  var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
-                using (var store = new MongoUserStore<MongoIdentityUser>(options))
+                using (var store = new MongoUserStore<MyIdentityUser>(options))
                 {
 
                     // ACT
@@ -74,11 +71,11 @@ namespace Identity.MongoDb.Tests
 
                     // ASSERT
                     Assert.True(result.Succeeded);
-                    var collection = dbProvider.Database.GetCollection<MongoIdentityUser>(Constants.DefaultCollectionName);
-                    var retrievedUser = await collection.FindByIdAsync(user.Id);
+                  
+                    var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
                     Assert.Equal(user.LockoutEndDate, retrievedUser.LockoutEndDate);
                 }
-            }
+            
         }
 
         public class MyIdentityUser : MongoIdentityUser

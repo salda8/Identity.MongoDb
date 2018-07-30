@@ -6,6 +6,7 @@ using System.Security.Claims;
 using MongoDB.Bson;
 using System.Linq;
 using Microsoft.AspNetCore.Identity;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Identity.MongoDb
 {
@@ -42,9 +43,6 @@ namespace Identity.MongoDb
             EnsureLoginsIsSet();
             EnsureRolesIsSet();
         }
-
-        //public string Id { get; private set; }
-        
         public bool IsTwoFactorEnabled { get; private set; }
 
         public IEnumerable<string> Roles

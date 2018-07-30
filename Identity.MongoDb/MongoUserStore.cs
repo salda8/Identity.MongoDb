@@ -865,5 +865,9 @@ namespace Identity.MongoDb
         {
             throw new NotImplementedException();
         }
+
+        public Task<long> GetUserCountAsync(){
+            return _usersCollection.CountDocumentsAsync(x => true);
+        }
     }
 }

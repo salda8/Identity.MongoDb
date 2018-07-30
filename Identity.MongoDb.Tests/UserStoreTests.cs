@@ -13,22 +13,19 @@ namespace Identity.MongoDb.Tests
         public async Task CreateAsync_ShouldCreateUser()
         {
             // ARRANGE
-            using (var dbProvider = MongoDbServerTestUtils.CreateDatabase())
-            {
-                MongoIdentityUser user;
-                 var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database= System.Guid.NewGuid().ToString() });
-               
-                using (var userStore = new MongoUserStore<MongoIdentityUser>(options) as IUserStore<MongoIdentityUser>)
-                {
-                    user = new MongoIdentityUser(TestUtils.RandomString(10));
+            MongoIdentityUser user;
+            var options = Options.Create(new MongoDbSettings() { ConnectionString = "mongodb://localhost:27017", Database = System.Guid.NewGuid().ToString() });
 
-                    // ACT
-                    await userStore.CreateAsync(user, CancellationToken.None);
-                }
+            using (var userStore = new MongoUserStore<MongoIdentityUser>(options) as IUserStore<MongoIdentityUser>)
+            {
+                user = new MongoIdentityUser(TestUtils.RandomString(10));
+
+                // ACT
+                await userStore.CreateAsync(user, CancellationToken.None);
+
 
                 // ASSERT
-                var collection = dbProvider.Database.GetDefaultCollection();
-                var retrievedUser = await collection.FindByIdAsync(user.Id).ConfigureAwait(false);
+                var retrievedUser = await userStore.FindByIdAsync(user.Id, CancellationToken.None).ConfigureAwait(false);
 
                 Assert.NotNull(retrievedUser);
                 Assert.Equal(user.UserName, retrievedUser.UserName);

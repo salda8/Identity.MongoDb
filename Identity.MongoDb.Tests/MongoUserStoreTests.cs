@@ -6,6 +6,7 @@ using Identity.MongoDb.Tests.Common;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Xunit;
+using static Identity.MongoDb.Tests.MongoIdentityUserTests;
 
 namespace Identity.MongoDb.Tests
 {
@@ -14,11 +15,11 @@ namespace Identity.MongoDb.Tests
         [Fact]
         public async Task MongoUserStore_ShouldPutThingsIntoUsersCollectionByDefault()
         {
-            var user = new MongoIdentityUser(TestUtils.RandomString(10));
+            var user = new MyIdentityUser(TestUtils.RandomString(10));
             using (var dbProvider = MongoDbServerTestUtils.CreateDatabase())
             {
                 var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
-                using (var store = new MongoUserStore<MongoIdentityUser>(options))
+                using (var store = new MongoUserStore<MyIdentityUser>(options))
                 {
 
                     // ACT
@@ -26,9 +27,9 @@ namespace Identity.MongoDb.Tests
 
                     // ASSERT
                     Assert.True(result.Succeeded);
-                    var collections = await (await dbProvider.Database.ListCollectionsAsync()).ToListAsync();
-                    var collectionExists = collections.Any(x => x["name"].ToString().Equals("users", StringComparison.Ordinal));
-                    Assert.True(collectionExists, "Default collection name should not be changed from the initial collection name ('users') since it will cause breaking change to current users");
+                   
+                    Assert.Equal(1,await store.GetUserCountAsync());
+               
                 }
             }
         }

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Identity.MongoDb
 {
-    public class MongoIdentityRole
+    public class MongoIdentityRole : IdentityRole
     {
         public MongoIdentityRole() 
         {
@@ -30,15 +30,7 @@ namespace Identity.MongoDb
             Name = roleName;
             NormalizedName = normalizedName;
         }
-
-
-
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
-
-        public string Name { get; set; }
-
-        public string NormalizedName { get; set; }
+      
 
         public override string ToString() => Name;
 
