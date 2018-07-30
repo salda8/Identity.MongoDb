@@ -1,0 +1,19 @@
+source https://www.myget.org/F/salda/api/v3/index.json
+source https://api.nuget.org/v3/index.json
+
+clitool dotnet-xunit
+nuget IdentityServer4.Contrib.MongoDB
+nuget Microsoft.AspNetCore.All 
+nuget Microsoft.AspNetCore.App
+nuget Microsoft.VisualStudio.Web.CodeGeneration.Design
+nuget Sendgrid
+nuget Serilog.AspNetCore 
+nuget Serilog.Formatting.Compact
+nuget Serilog.Settings.Configuration
+nuget Serilog.Sinks.Console 
+nuget Serilog.Sinks.MongoDB 
+nuget Serilog.Sinks.RollingFile 
+nuget Serilog.Sinks.RollingFileAlternate
+nuget Twilio
+nuget xunit 
+nuget xunit.runner.visualstudio

@@ -3,6 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{E1C3E379-97DB-4FA6-91AA-D6EBF383C052}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.MongoDb", "Identity.MongoDb\Identity.MongoDb.csproj", "{23DB0875-242A-4136-88CE-F224F72503C7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.MongoDb.Tests", "Identity.MongoDb.Tests\Identity.MongoDb.Tests.csproj", "{74B5AE98-0964-4281-BE1E-35389DFDD5B5}"
