@@ -51,13 +51,13 @@ namespace Identity.MongoDb
 
         public MongoUserStore(string userCollectionName, IOptions<MongoDbSettings> options)
         {
-            
+
             if (userCollectionName == null)
             {
                 throw new ArgumentNullException(nameof(userCollectionName));
             }
 
-             var database = new MongoClient(options.Value.ConnectionString).GetDatabase(options.Value.Database);
+            var database = new MongoClient(options.Value.ConnectionString).GetDatabase(options.Value.Database);
             _usersCollection = database.GetCollection<TUser>(userCollectionName);
 
             EnsureIndicesCreatedAsync().GetAwaiter().GetResult();
@@ -89,13 +89,24 @@ namespace Identity.MongoDb
 
             user.Delete();
             var query = Builders<TUser>.Filter.Eq(u => u.Id, user.Id);
-            //set delete true
-
-            //var update = Builders<TUser>.Update.Set(u => u.DeletedOn, user.DeletedOn);
-
-            //await _usersCollection.UpdateOneAsync(query, update, cancellationToken: cancellationToken).ConfigureAwait(false);
-            //hard delete
             await _usersCollection.DeleteOneAsync(query, cancellationToken);
+            return IdentityResult.Success;
+        }
+
+        public async Task<IdentityResult> SetAsDeletedAsync(TUser user, CancellationToken cancellationToken)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            user.Delete();
+            var query = Builders<TUser>.Filter.Eq(u => u.Id, user.Id);
+            //set delete true
+            var update = Builders<TUser>.Update.Set(u => u.DeletedOn, user.DeletedOn);
+            await _usersCollection.UpdateOneAsync(query, update, cancellationToken: cancellationToken).ConfigureAwait(false);
             return IdentityResult.Success;
         }
 
@@ -781,14 +792,13 @@ namespace Identity.MongoDb
             };
 
             var pack = ConventionRegistry.Lookup(typeof(CamelCaseElementNameConvention));
-
             var emailKeyBuilder = Builders<TUser>.IndexKeys.Ascending(user => user.Email);
             var loginKeyBuilder = Builders<TUser>.IndexKeys.Ascending("logins.loginProvider").Ascending("logins.providerKey");
 
             var tasks = new[]
             {
-                _usersCollection.Indexes.CreateOneAsync(emailKeyBuilder, new CreateIndexOptions { Unique = true, Name = indexNames.UniqueEmail }),
-                _usersCollection.Indexes.CreateOneAsync(loginKeyBuilder, new CreateIndexOptions { Name = indexNames.Login })
+                _usersCollection.Indexes.CreateOneAsync(new CreateIndexModel<TUser>(emailKeyBuilder, new CreateIndexOptions { Unique = true, Name = indexNames.UniqueEmail })),
+                _usersCollection.Indexes.CreateOneAsync(new CreateIndexModel<TUser>(loginKeyBuilder, new CreateIndexOptions { Name = indexNames.Login })),
             };
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -832,7 +842,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        
+
 
         public Task RemoveFromRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
         {
