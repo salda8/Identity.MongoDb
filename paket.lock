@@ -1346,7 +1346,7 @@ NUGET
     Microsoft.Win32.Registry (4.5) - restriction: || (&& (>= netcoreapp1.0) (< netcoreapp1.1)) (&& (>= netcoreapp1.1) (< netcoreapp2.0)) (>= netcoreapp2.1)
       System.Security.AccessControl (>= 4.5) - restriction: || (>= monoandroid) (>= monotouch) (&& (< net46) (>= netstandard2.0)) (>= net461) (>= netcoreapp2.0) (>= netcoreapp2.1) (>= xamarinios) (>= xamarinmac) (>= xamarintvos) (>= xamarinwatchos)
       System.Security.Principal.Windows (>= 4.5) - restriction: || (>= monoandroid) (>= monotouch) (&& (< net46) (>= netstandard2.0)) (>= net461) (>= netcoreapp2.0) (>= netcoreapp2.1) (>= xamarinios) (>= xamarinmac) (>= xamarintvos) (>= xamarinwatchos)
-    Mongo2Go (2.2.6)
+    mongo2go (2.2.6)
     MongoDB.Bson (2.7) - restriction: >= netstandard2.0
       NETStandard.Library (>= 1.6.1) - restriction: && (< net45) (>= netstandard1.5)
       System.Collections.NonGeneric (>= 4.0.1) - restriction: && (< net45) (>= netstandard1.5)
