@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Identity.MongoDb;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
 using Mongo2Go;
 
 namespace Identity.MongoDb.Tests
