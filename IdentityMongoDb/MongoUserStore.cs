@@ -63,7 +63,7 @@ namespace Identity.MongoDb
             EnsureIndicesCreatedAsync().GetAwaiter().GetResult();
         }
 
-        public async Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -73,12 +73,12 @@ namespace Identity.MongoDb
             cancellationToken.ThrowIfCancellationRequested();
 
             await _usersCollection.InsertOneAsync(user, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+                ;
 
             return IdentityResult.Success;
         }
 
-        public async Task<IdentityResult> DeleteAsync(TUser user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -93,7 +93,7 @@ namespace Identity.MongoDb
             return IdentityResult.Success;
         }
 
-        public async Task<IdentityResult> SetAsDeletedAsync(TUser user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> SetAsDeletedAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -106,11 +106,11 @@ namespace Identity.MongoDb
             var query = Builders<TUser>.Filter.Eq(u => u.Id, user.Id);
             //set delete true
             var update = Builders<TUser>.Update.Set(u => u.DeletedOn, user.DeletedOn);
-            await _usersCollection.UpdateOneAsync(query, update, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await _usersCollection.UpdateOneAsync(query, update, cancellationToken: cancellationToken);
             return IdentityResult.Success;
         }
 
-        public Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (userId == null)
             {
@@ -127,7 +127,7 @@ namespace Identity.MongoDb
             return _usersCollection.Find(query).FirstOrDefaultAsync(cancellationToken);
         }
 
-        public Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (normalizedUserName == null)
             {
@@ -144,7 +144,7 @@ namespace Identity.MongoDb
             return _usersCollection.Find(query).FirstOrDefaultAsync(cancellationToken);
         }
 
-        public Task<string> GetNormalizedUserNameAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedUserNameAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -154,7 +154,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.NormalizedUserName);
         }
 
-        public Task<string> GetUserIdAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetUserIdAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -164,7 +164,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.Id);
         }
 
-        public Task<string> GetUserNameAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetUserNameAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -174,7 +174,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.UserName);
         }
 
-        public Task SetNormalizedUserNameAsync(TUser user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(TUser user, string normalizedName, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -191,12 +191,12 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task SetUserNameAsync(TUser user, string userName, CancellationToken cancellationToken)
+        public Task SetUserNameAsync(TUser user, string userName, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotSupportedException("Changing the username is not supported.");
         }
 
-        public async Task<IdentityResult> UpdateAsync(TUser user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -208,14 +208,14 @@ namespace Identity.MongoDb
                 Builders<TUser>.Filter.Eq(u => u.DeletedOn, null)
             );
 
-            var replaceResult = await _usersCollection.ReplaceOneAsync(query, user, new UpdateOptions { IsUpsert = false }).ConfigureAwait(false);
+            var replaceResult = await _usersCollection.ReplaceOneAsync(query, user, new UpdateOptions { IsUpsert = false });
 
             return replaceResult.IsModifiedCountAvailable && replaceResult.ModifiedCount == 1
                 ? IdentityResult.Success
                 : IdentityResult.Failed();
         }
 
-        public Task AddLoginAsync(TUser user, UserLoginInfo login, CancellationToken cancellationToken)
+        public Task AddLoginAsync(TUser user, UserLoginInfo login, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -238,7 +238,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task RemoveLoginAsync(TUser user, string loginProvider, string providerKey, CancellationToken cancellationToken)
+        public Task RemoveLoginAsync(TUser user, string loginProvider, string providerKey, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -266,7 +266,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user, CancellationToken cancellationToken)
+        public Task<IList<UserLoginInfo>> GetLoginsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -279,7 +279,7 @@ namespace Identity.MongoDb
             return Task.FromResult<IList<UserLoginInfo>>(logins.ToList());
         }
 
-        public Task<TUser> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
+        public Task<TUser> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (loginProvider == null)
             {
@@ -304,7 +304,7 @@ namespace Identity.MongoDb
             return _usersCollection.Find(query).FirstOrDefaultAsync();
         }
 
-        public Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken)
+        public Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -316,7 +316,7 @@ namespace Identity.MongoDb
             return Task.FromResult<IList<Claim>>(claims);
         }
 
-        public Task AddClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        public Task AddClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -336,7 +336,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task ReplaceClaimAsync(TUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
+        public Task ReplaceClaimAsync(TUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -359,7 +359,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task RemoveClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        public Task RemoveClaimsAsync(TUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -379,7 +379,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public async Task<IList<TUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
+        public async Task<IList<TUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (claim == null)
             {
@@ -395,12 +395,12 @@ namespace Identity.MongoDb
             );
 
             var query = Builders<TUser>.Filter.And(notDeletedQuery, claimQuery);
-            var users = await _usersCollection.Find(query).ToListAsync().ConfigureAwait(false);
+            var users = await _usersCollection.Find(query).ToListAsync();
 
             return users;
         }
 
-        public Task SetPasswordHashAsync(TUser user, string passwordHash, CancellationToken cancellationToken)
+        public Task SetPasswordHashAsync(TUser user, string passwordHash, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -412,7 +412,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetPasswordHashAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -422,7 +422,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.PasswordHash);
         }
 
-        public Task<bool> HasPasswordAsync(TUser user, CancellationToken cancellationToken)
+        public Task<bool> HasPasswordAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -432,7 +432,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.PasswordHash != null);
         }
 
-        public Task SetSecurityStampAsync(TUser user, string stamp, CancellationToken cancellationToken)
+        public Task SetSecurityStampAsync(TUser user, string stamp, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -449,7 +449,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<string> GetSecurityStampAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetSecurityStampAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -459,7 +459,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.SecurityStamp);
         }
 
-        public Task SetTwoFactorEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken)
+        public Task SetTwoFactorEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -478,7 +478,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<bool> GetTwoFactorEnabledAsync(TUser user, CancellationToken cancellationToken)
+        public Task<bool> GetTwoFactorEnabledAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -488,7 +488,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.IsTwoFactorEnabled);
         }
 
-        public Task SetEmailAsync(TUser user, string email, CancellationToken cancellationToken)
+        public Task SetEmailAsync(TUser user, string email, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -505,7 +505,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<string> GetEmailAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetEmailAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -517,7 +517,7 @@ namespace Identity.MongoDb
             return Task.FromResult(email);
         }
 
-        public Task<bool> GetEmailConfirmedAsync(TUser user, CancellationToken cancellationToken)
+        public Task<bool> GetEmailConfirmedAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -532,7 +532,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.EmailConfirmed);
         }
 
-        public Task SetEmailConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken)
+        public Task SetEmailConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -556,7 +556,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        public Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (normalizedEmail == null)
             {
@@ -571,7 +571,7 @@ namespace Identity.MongoDb
             return _usersCollection.Find(query).FirstOrDefaultAsync(cancellationToken);
         }
 
-        public Task<string> GetNormalizedEmailAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedEmailAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -583,7 +583,7 @@ namespace Identity.MongoDb
             return Task.FromResult(normalizedEmail);
         }
 
-        public Task SetNormalizedEmailAsync(TUser user, string normalizedEmail, CancellationToken cancellationToken)
+        public Task SetNormalizedEmailAsync(TUser user, string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -602,7 +602,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<DateTimeOffset?> GetLockoutEndDateAsync(TUser user, CancellationToken cancellationToken)
+        public Task<DateTimeOffset?> GetLockoutEndDateAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -616,7 +616,7 @@ namespace Identity.MongoDb
             return Task.FromResult(lockoutEndDate);
         }
 
-        public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
+        public Task SetLockoutEndDateAsync(TUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -631,7 +631,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public async Task<int> IncrementAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+        public async Task<int> IncrementAccessFailedCountAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -648,14 +648,14 @@ namespace Identity.MongoDb
 
             var newCount = await _usersCollection
                 .FindOneAndUpdateAsync<int>(filter, update, findOneAndUpdateOptions)
-                .ConfigureAwait(false);
+                ;
 
             user.SetAccessFailedCount(newCount);
 
             return newCount;
         }
 
-        public Task ResetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+        public Task ResetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -667,7 +667,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<int> GetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken)
+        public Task<int> GetAccessFailedCountAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -677,7 +677,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.AccessFailedCount);
         }
 
-        public Task<bool> GetLockoutEnabledAsync(TUser user, CancellationToken cancellationToken)
+        public Task<bool> GetLockoutEnabledAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -687,7 +687,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.IsLockoutEnabled);
         }
 
-        public Task SetLockoutEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken)
+        public Task SetLockoutEnabledAsync(TUser user, bool enabled, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -706,7 +706,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task SetPhoneNumberAsync(TUser user, string phoneNumber, CancellationToken cancellationToken)
+        public Task SetPhoneNumberAsync(TUser user, string phoneNumber, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -723,7 +723,7 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<string> GetPhoneNumberAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetPhoneNumberAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -733,7 +733,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.PhoneNumber);
         }
 
-        public Task<bool> GetPhoneNumberConfirmedAsync(TUser user, CancellationToken cancellationToken)
+        public Task<bool> GetPhoneNumberConfirmedAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -748,7 +748,7 @@ namespace Identity.MongoDb
             return Task.FromResult(user.PhoneNumberConfirmed);
         }
 
-        public Task SetPhoneNumberConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken)
+        public Task SetPhoneNumberConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (user == null)
             {
@@ -779,7 +779,7 @@ namespace Identity.MongoDb
             if (obj != null)
             {
                 var taskToAwait = (Task)obj;
-                await taskToAwait.ConfigureAwait(false);
+                await taskToAwait;
             }
         }
 
@@ -801,10 +801,10 @@ namespace Identity.MongoDb
                 _usersCollection.Indexes.CreateOneAsync(new CreateIndexModel<TUser>(loginKeyBuilder, new CreateIndexOptions { Name = indexNames.Login })),
             };
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks);
         }
 
-        public Task SetAuthenticatorKeyAsync(TUser user, string key, CancellationToken cancellationToken)
+        public Task SetAuthenticatorKeyAsync(TUser user, string key, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -815,28 +815,28 @@ namespace Identity.MongoDb
             return Task.FromResult(0);
         }
 
-        public Task<string> GetAuthenticatorKeyAsync(TUser user, CancellationToken cancellationToken)
+        public Task<string> GetAuthenticatorKeyAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             return Task.FromResult(user.AuthenticatorKey);
         }
 
-        public Task ReplaceCodesAsync(TUser user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken)
+        public Task ReplaceCodesAsync(TUser user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken = default(CancellationToken))
         {
             user.ReplaceRecoveryCodes(recoveryCodes);
             return Task.FromResult(0);
         }
 
-        public Task<bool> RedeemCodeAsync(TUser user, string code, CancellationToken cancellationToken)
+        public Task<bool> RedeemCodeAsync(TUser user, string code, CancellationToken cancellationToken = default(CancellationToken))
         {
             return Task.FromResult(user.RedeemCode(code));
         }
 
-        public Task<int> CountCodesAsync(TUser user, CancellationToken cancellationToken)
+        public Task<int> CountCodesAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             return Task.FromResult(user.CountOfRecoveryCodes());
         }
 
-        public Task AddToRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        public Task AddToRoleAsync(TUser user, string roleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             user.AddRole(roleName);
             return Task.FromResult(0);
@@ -844,24 +844,24 @@ namespace Identity.MongoDb
 
 
 
-        public Task RemoveFromRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        public Task RemoveFromRoleAsync(TUser user, string roleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             user.RemoveRole(roleName);
             return Task.FromResult(0);
         }
 
-        public Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken)
+        public Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
         {
             IList<string> result = user.Roles.ToList();
             return Task.FromResult(result);
         }
 
-        public Task<bool> IsInRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        public Task<bool> IsInRoleAsync(TUser user, string roleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             return Task.FromResult(user.Roles.Any(x => x == roleName));
         }
 
-        public Task<IList<TUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        public Task<IList<TUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }

@@ -47,5 +47,15 @@ namespace Identity.MongoDb.Models
             return other.Type.Equals(ClaimType)
                 && other.Value.Equals(ClaimValue);
         }
+
+        public Claim ToClaim()
+        {
+            return new Claim(ClaimType, ClaimValue);
+        }
+
+        public static Claim ToClaim(string claimType, string claimValue)
+        {
+            return new Claim(claimType, claimValue);
+        }
     }
 }

@@ -25,7 +25,7 @@ namespace Identity.MongoDb.Tests
 
 
                 // ASSERT
-                var retrievedUser = await userStore.FindByIdAsync(user.Id, CancellationToken.None).ConfigureAwait(false);
+                var retrievedUser = await userStore.FindByIdAsync(user.Id, CancellationToken.None);
 
                 Assert.NotNull(retrievedUser);
                 Assert.Equal(user.UserName, retrievedUser.UserName);

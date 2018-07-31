@@ -34,10 +34,28 @@ namespace Identity.MongoDb
         {
             RegisterConventions();
 
+            BsonClassMap.RegisterClassMap<IdentityRole>(cm=>{
+              
+                cm.MapCreator(role=> new IdentityRole(role.Name));
+            });
+
+             BsonClassMap.RegisterClassMap<IdentityRole<string>>(cm=>{
+                cm.AutoMap();
+                cm.MapIdField(x=>x.Id).SetSerializer(new StringSerializer(BsonType.ObjectId))
+                    .SetIdGenerator(StringObjectIdGenerator.Instance);
+                cm.MapCreator(role=> new IdentityRole<string>(role.Name));
+            });
+
+             BsonClassMap.RegisterClassMap<MongoIdentityRole>(cm =>
+            {
+                cm.AutoMap();
+                cm.MapCreator(role => new MongoIdentityRole(role.Name));
+            });
+
+
+
             BsonClassMap.RegisterClassMap<IdentityUser<string>>(cm =>
             {
-                
-
                 cm.AutoMap();
                 cm.MapIdField(c => c.Id)
                     .SetSerializer(new StringSerializer(BsonType.ObjectId))
@@ -53,6 +71,8 @@ namespace Identity.MongoDb
                 
                 cm.MapCreator(user => new IdentityUser(user.UserName));
             });
+
+
 
             BsonClassMap.RegisterClassMap<MongoIdentityUser>(cm =>
             {
