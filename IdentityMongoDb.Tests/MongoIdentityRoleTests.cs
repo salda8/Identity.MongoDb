@@ -9,15 +9,25 @@ using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Identity.MongoDb;
 using Microsoft.Extensions.Options;
+using Mongo2Go;
 
 namespace Identity.MongoDb.Tests
 {
-    public class MongoIdentityRoleTests
+    public class MongoIdentityRoleTests : IDisposable
     {
+        private MongoDbRunner runner;
+        private IOptions<MongoDbSettings> options;
+
+        public MongoIdentityRoleTests()
+        {
+            runner = MongoDbRunner.Start();
+            options = Options.Create(new MongoDbSettings() { ConnectionString = runner.ConnectionString, Database = Guid.NewGuid().ToString() });
+        }
+
         [Fact]
         public async Task MongoIdentityRole_CanBeSavedAndRetrievedAndDeleted()
         {
-            var options = Options.Create(new MongoDbSettings() { ConnectionString = "mongodb://localhost:27017", Database = Guid.NewGuid().ToString() });
+
             using (var store = new MongoRoleClaimStore<MongoIdentityRole>(options, null, null, null))
             {
                 var mongoRole = new MongoIdentityRole("godRole");
@@ -34,7 +44,7 @@ namespace Identity.MongoDb.Tests
         [Fact]
         public async Task MongoIdentityRole_CanAddAndRetrieveAndRemoveClaims()
         {
-            var options = Options.Create(new MongoDbSettings() { ConnectionString = "mongodb://localhost:27017", Database = Guid.NewGuid().ToString() });
+
             using (var store = new MongoRoleClaimStore<MongoIdentityRole>(options, null, null, null))
             {
                 var mongoRole = new MongoIdentityRole("godRole");
@@ -54,6 +64,11 @@ namespace Identity.MongoDb.Tests
 
             }
 
+        }
+
+        public void Dispose()
+        {
+            runner.Dispose();
         }
     }
 }
