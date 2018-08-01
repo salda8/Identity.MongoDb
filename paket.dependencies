@@ -17,3 +17,5 @@ nuget Serilog.Sinks.RollingFileAlternate
 nuget Twilio
 nuget xunit 
 nuget xunit.runner.visualstudio
+nuget mongo2go
+nuget OpenCover

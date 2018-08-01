@@ -9,11 +9,22 @@ using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Identity.MongoDb;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
+using Mongo2Go;
 
 namespace Identity.MongoDb.Tests
 {
-    public class MongoIdentityUserTests
+    public class MongoIdentityUserTests : IDisposable
     {
+        private MongoDbRunner runner;
+        private IOptions<MongoDbSettings> options;
+
+        public MongoIdentityUserTests()
+        {
+            runner = MongoDbRunner.Start();
+            options = Options.Create(new MongoDbSettings() { ConnectionString = runner.ConnectionString, Database = Guid.NewGuid().ToString() });
+        }
+
         [Fact]
         public async Task MongoIdentityUser_CanBeSavedAndRetrieved_WhenItBecomesTheSubclass()
         {
@@ -27,29 +38,28 @@ namespace Identity.MongoDb.Tests
             user.AddClaim(new Claim(ClaimTypes.Country, countryName));
             user.AddLogin(new MongoUserLogin(new UserLoginInfo(loginProvider, providerKey, displayName)));
 
-            var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
-                using (var store = new MongoUserStore<MyIdentityUser>(options))
-                {
+            using (var store = new MongoUserStore<MyIdentityUser>(options))
+            {
 
-                    // ACT, ASSERT
-                    var result = await store.CreateAsync(user, CancellationToken.None);
-                    Assert.True(result.Succeeded);
+                // ACT, ASSERT
+                var result = await store.CreateAsync(user, CancellationToken.None);
+                Assert.True(result.Succeeded);
 
-                    // ACT, ASSERT
-                    var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
-                    Assert.NotNull(retrievedUser);
-                    Assert.Equal(username, retrievedUser.UserName);
-                    Assert.Equal(myCustomThing, retrievedUser.MyCustomThing);
+                // ACT, ASSERT
+                var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
+                Assert.NotNull(retrievedUser);
+                Assert.Equal(username, retrievedUser.UserName);
+                Assert.Equal(myCustomThing, retrievedUser.MyCustomThing);
 
-                    var countryClaim = retrievedUser.Claims.FirstOrDefault(x => x.ClaimType == ClaimTypes.Country);
-                    Assert.NotNull(countryClaim);
-                    Assert.Equal(countryName, countryClaim.ClaimValue);
+                var countryClaim = retrievedUser.Claims.FirstOrDefault(x => x.ClaimType == ClaimTypes.Country);
+                Assert.NotNull(countryClaim);
+                Assert.Equal(countryName, countryClaim.ClaimValue);
 
-                    var retrievedLoginProvider = retrievedUser.Logins.FirstOrDefault(x => x.LoginProvider == loginProvider);
-                    Assert.NotNull(retrievedLoginProvider);
-                    Assert.Equal(providerKey, retrievedLoginProvider.ProviderKey);
-                    Assert.Equal(displayName, retrievedLoginProvider.ProviderDisplayName);
-                
+                var retrievedLoginProvider = retrievedUser.Logins.FirstOrDefault(x => x.LoginProvider == loginProvider);
+                Assert.NotNull(retrievedLoginProvider);
+                Assert.Equal(providerKey, retrievedLoginProvider.ProviderKey);
+                Assert.Equal(displayName, retrievedLoginProvider.ProviderDisplayName);
+
             }
         }
 
@@ -59,23 +69,27 @@ namespace Identity.MongoDb.Tests
             var lockoutEndDate = new DateTime(2017, 2, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(8996910);
             var user = new MyIdentityUser(TestUtils.RandomString(10));
             user.LockUntil(lockoutEndDate);
-            
 
-         
-                 var options = Options.Create(new MongoDbSettings(){ConnectionString="mongodb://localhost:27017", Database=Guid.NewGuid().ToString() });
-                using (var store = new MongoUserStore<MyIdentityUser>(options))
-                {
 
-                    // ACT
-                    var result = await store.CreateAsync(user, CancellationToken.None);
 
-                    // ASSERT
-                    Assert.True(result.Succeeded);
-                  
-                    var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
-                    Assert.Equal(user.LockoutEndDate, retrievedUser.LockoutEndDate);
-                }
-            
+            using (var store = new MongoUserStore<MyIdentityUser>(options))
+            {
+
+                // ACT
+                var result = await store.CreateAsync(user, CancellationToken.None);
+
+                // ASSERT
+                Assert.True(result.Succeeded);
+
+                var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
+                Assert.Equal(user.LockoutEndDate, retrievedUser.LockoutEndDate);
+            }
+
+        }
+
+        public void Dispose()
+        {
+            runner.Dispose();
         }
 
         public class MyIdentityUser : MongoIdentityUser
