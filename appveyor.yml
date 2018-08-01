@@ -11,6 +11,8 @@ after_build:
 
     nuget push *.nupkg 91b4b205-d68e-4a90-98db-6ce420617a14 -Source https://www.myget.org/F/salda/api/v2/package
     
-    Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-    
-    .\codecov.sh -f "coverage.xml"
+after_test:
+  - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh -f "coverage.xml"
