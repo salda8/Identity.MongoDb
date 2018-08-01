@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <UserSecretsId>aspnet-Identity.MongoDb.Sample-B7FF7CE4-7893-4E87-80A8-74F3AFC1202E</UserSecretsId>
+	<DebugType>Full</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\IdentityMongoDb\Identity.MongoDb.csproj" />
