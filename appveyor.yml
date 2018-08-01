@@ -12,9 +12,6 @@ dotnet_csproj:
 before_build:
 - pwsh: >-
     dotnet restore
-    choco install opencover.portable
-    choco install codecov
-   
     
 build:
   verbosity: normal
@@ -27,7 +24,7 @@ after_build:
 
     nuget push *.nupkg 91b4b205-d68e-4a90-98db-6ce420617a14 -Source https://www.myget.org/F/salda/api/v2/package
 test_script:
-    OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:test -filter:"+[Identity.MongoDb.Tests*]* -[Tests*]*" -output:".\MyProject_coverage.xml" -oldstyle
+    .\packages\OpenCover\tools\OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:test -filter:"+[Identity.MongoDb.Tests*]* -[Tests*]*" -output:".\MyProject_coverage.xml" -oldstyle
  
 after_test:
   - ps: |

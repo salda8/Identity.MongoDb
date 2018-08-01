@@ -1426,6 +1426,7 @@ NUGET
       Newtonsoft.Json (>= 10.0.1) - restriction: || (>= net45) (>= netstandard1.3)
     NuGet.Frameworks (4.7) - restriction: || (&& (>= net461) (>= netstandard2.0)) (>= netcoreapp2.0)
       NETStandard.Library (>= 1.6.1) - restriction: && (< net40) (>= netstandard1.6)
+    OpenCover (4.6.519)
     Remotion.Linq (2.2) - restriction: >= netcoreapp2.1
       System.Collections (>= 4.0.11) - restriction: && (< net35) (>= netstandard1.0)
       System.Diagnostics.Debug (>= 4.0.11) - restriction: && (< net35) (>= netstandard1.0)
