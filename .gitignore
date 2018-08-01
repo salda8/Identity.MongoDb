@@ -334,3 +334,4 @@ ASALocalRun/
 .vscode/
 EventBusKafka/.paket/paket.exe
 Identity.MongoDb/Identity.MongoDb.csproj
+codecov.sh
