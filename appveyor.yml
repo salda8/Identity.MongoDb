@@ -1,0 +1,37 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+configuration: Release
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+before_build:
+- pwsh: >-
+    dotnet restore
+    choco install opencover.portable
+    choco install codecov
+   
+    
+build:
+  verbosity: normal
+
+after_build:
+- pwsh: >-
+    .paket/paket.exe pack . --template ./IdentityMongoDb/paket.template
+
+    nuget push *.nupkg -ApiKey o3yk865auhn9olmkxtmn2v49 -Source https://ci.appveyor.com/nuget/salda8-0h4n5nbbutro/api/v2/package
+
+    nuget push *.nupkg 91b4b205-d68e-4a90-98db-6ce420617a14 -Source https://www.myget.org/F/salda/api/v2/package
+test_script:
+    OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:test -filter:"+[Identity.MongoDb.Tests*]* -[Tests*]*" -output:".\MyProject_coverage.xml" -oldstyle
+ 
+after_test:
+  - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh -f "coverage.xml"   
+    
