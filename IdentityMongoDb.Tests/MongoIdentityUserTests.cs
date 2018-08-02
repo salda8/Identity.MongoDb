@@ -43,24 +43,28 @@ namespace Identity.MongoDb.Tests
 
             using (var store = new MongoUserStore<MyIdentityUser>(options))
             {
-                // ACT, ASSERT
+                
                 var result = await store.CreateAsync(user, CancellationToken.None);
-                Assert.True(result.Succeeded);
-
-                // ACT, ASSERT
+                result.Succeeded.Should().BeTrue();
+                              
                 var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
-                Assert.NotNull(retrievedUser);
-                Assert.Equal(username, retrievedUser.UserName);
-                Assert.Equal(myCustomThing, retrievedUser.MyCustomThing);
+               retrievedUser.Should().NotBeNull();
+               retrievedUser.UserName.Should().Be(username);
+               retrievedUser.MyCustomThing.Should().Be(myCustomThing);
+                //Assert.Equal(username, retrievedUser.UserName);
+               // Assert.Equal(myCustomThing, retrievedUser.MyCustomThing);
 
                 var countryClaim = retrievedUser.Claims.FirstOrDefault(x => x.ClaimType == ClaimTypes.Country);
-                Assert.NotNull(countryClaim);
-                Assert.Equal(countryName, countryClaim.ClaimValue);
+                countryClaim.Should().NotBeNull();
+                countryClaim.ClaimValue.Should().Be(countryName);
+              
 
                 var retrievedLoginProvider = retrievedUser.Logins.FirstOrDefault(x => x.LoginProvider == loginProvider);
-                Assert.NotNull(retrievedLoginProvider);
-                Assert.Equal(providerKey, retrievedLoginProvider.ProviderKey);
-                Assert.Equal(displayName, retrievedLoginProvider.ProviderDisplayName);
+                retrievedLoginProvider.Should().NotBeNull();
+                retrievedLoginProvider.ProviderKey.Should().Be(providerKey);
+                retrievedLoginProvider.ProviderDisplayName.Should().Be(displayName);
+               // Assert.Equal(providerKey, retrievedLoginProvider.ProviderKey);
+               // Assert.Equal(displayName, retrievedLoginProvider.ProviderDisplayName);
 
             }
         }
@@ -77,9 +81,10 @@ namespace Identity.MongoDb.Tests
                 // ACT
                 var result = await store.CreateAsync(user, CancellationToken.None);
                 // ASSERT
-                Assert.True(result.Succeeded);
+                result.Succeeded.Should().BeTrue();
                 var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
-                Assert.Equal(user.LockoutEndDate, retrievedUser.LockoutEndDate);
+                retrievedUser.LockoutEndDate.Instant.Should().BeSameDateAs(user.LockoutEndDate.Instant);
+               
             }
 
         }

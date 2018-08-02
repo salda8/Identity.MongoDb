@@ -11,6 +11,9 @@ using Identity.MongoDb;
 using Microsoft.Extensions.Options;
 using Mongo2Go;
 using AutoFixture;
+using FluentAssertions;
+using FluentAssertions.Extensions;
+
 
 namespace Identity.MongoDb.Tests
 {
@@ -35,10 +38,10 @@ namespace Identity.MongoDb.Tests
                 var mongoRole = new MongoIdentityRole(fixture.Create<string>());
                 var createOne = await store.CreateAsync(mongoRole, CancellationToken.None);
                 var retrieveOne = await store.FindByNameAsync(mongoRole.Name, CancellationToken.None);
-                Assert.NotNull(retrieveOne);
+                retrieveOne.Should().NotBeNull();
                 await store.DeleteAsync(retrieveOne);
                 retrieveOne = await store.FindByNameAsync(mongoRole.Name, CancellationToken.None);
-                Assert.Null(retrieveOne);
+                retrieveOne.Should().BeNull();
 
             }
 
@@ -52,16 +55,17 @@ namespace Identity.MongoDb.Tests
                 var mongoRole = new MongoIdentityRole(fixture.Create<string>());
                 var createOne = await store.CreateAsync(mongoRole, CancellationToken.None);
                 var retrieveOne = await store.FindByNameAsync(mongoRole.Name, CancellationToken.None);
-                Assert.NotNull(retrieveOne);
+                retrieveOne.Should().NotBeNull();
+              
                 var claim = new Claim(ClaimTypes.Role, fixture.Create<string>());
                 await store.AddClaimAsync(retrieveOne, claim);
                 var retrieveOneAgain = await store.FindByNameAsync(mongoRole.Name, CancellationToken.None);
-                Assert.Single(retrieveOneAgain.Claims);
-
+                retrieveOneAgain.Claims.Should().ContainSingle();
+                
                 retrieveOneAgain = await store.FindByIdAsync(retrieveOneAgain.Id, CancellationToken.None);
                 await store.RemoveClaimAsync(retrieveOneAgain, retrieveOneAgain.Claims.Single().ToClaim());
                 retrieveOneAgain = await store.FindByIdAsync(retrieveOneAgain.Id, CancellationToken.None);
-                Assert.Empty(retrieveOneAgain.Claims);
+                retrieveOneAgain.Claims.Should().BeEmpty();
 
 
             }

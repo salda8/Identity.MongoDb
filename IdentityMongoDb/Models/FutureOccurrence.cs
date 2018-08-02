@@ -10,6 +10,7 @@ namespace Identity.MongoDb.Models
 
         public FutureOccurrence(DateTime willOccurOn) : base(willOccurOn)
         {
+            
         }
     }
 }
