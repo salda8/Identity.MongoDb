@@ -9,6 +9,8 @@ using Identity.MongoDb;
 using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Mongo2Go;
+using FluentAssertions;
+using FluentAssertions.Extensions;
 
 namespace Identity.MongoDb.Tests
 {
@@ -32,13 +34,12 @@ namespace Identity.MongoDb.Tests
             using (var store = new MongoUserStore<MongoIdentityUser>(options))
             {
 
-                // ACT
                 var result = await store.CreateAsync(user, CancellationToken.None);
 
-                // ASSERT
-                Assert.True(result.Succeeded);
-
-                Assert.Equal(1, await store.GetUserCountAsync());
+                result.Succeeded.Should().BeTrue();
+                var count = await store.GetUserCountAsync();
+                count.Should().Be(1);
+              
 
             }
         }
@@ -54,9 +55,10 @@ namespace Identity.MongoDb.Tests
                 user = new MongoIdentityUser(TestUtils.RandomString(10));
                 await userStore.CreateAsync(user, CancellationToken.None);
                 var retrievedUser = await userStore.FindByIdAsync(user.Id, CancellationToken.None);
-                Assert.NotNull(retrievedUser);
-                Assert.Equal(user.UserName, retrievedUser.UserName);
-                Assert.Equal(user.NormalizedUserName, retrievedUser.NormalizedUserName);
+                retrievedUser.Should().NotBeNull();
+                retrievedUser.UserName.Should().Be(user.UserName);
+                retrievedUser.NormalizedUserName.Should().Be(user.NormalizedUserName);
+
             }
         }
 
