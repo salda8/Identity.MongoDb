@@ -10,6 +10,7 @@ using Xunit;
 using Identity.MongoDb;
 using Microsoft.Extensions.Options;
 using Mongo2Go;
+using AutoFixture;
 
 namespace Identity.MongoDb.Tests
 {
@@ -17,6 +18,7 @@ namespace Identity.MongoDb.Tests
     {
         private DisposableDatabase disposableDatabase;
         private IOptions<MongoDbSettings> options;
+        private Fixture fixture = new Fixture();
 
         public MongoIdentityRoleTests()
         {
@@ -30,7 +32,7 @@ namespace Identity.MongoDb.Tests
 
             using (var store = new MongoRoleClaimStore<MongoIdentityRole>(options, null, null, null))
             {
-                var mongoRole = new MongoIdentityRole("godRole");
+                var mongoRole = new MongoIdentityRole(fixture.Create<string>());
                 var createOne = await store.CreateAsync(mongoRole, CancellationToken.None);
                 var retrieveOne = await store.FindByNameAsync(mongoRole.Name, CancellationToken.None);
                 Assert.NotNull(retrieveOne);
@@ -47,11 +49,11 @@ namespace Identity.MongoDb.Tests
 
             using (var store = new MongoRoleClaimStore<MongoIdentityRole>(options, null, null, null))
             {
-                var mongoRole = new MongoIdentityRole("godRole");
+                var mongoRole = new MongoIdentityRole(fixture.Create<string>());
                 var createOne = await store.CreateAsync(mongoRole, CancellationToken.None);
                 var retrieveOne = await store.FindByNameAsync(mongoRole.Name, CancellationToken.None);
                 Assert.NotNull(retrieveOne);
-                var claim = new Claim(ClaimTypes.Role, "god");
+                var claim = new Claim(ClaimTypes.Role, fixture.Create<string>());
                 await store.AddClaimAsync(retrieveOne, claim);
                 var retrieveOneAgain = await store.FindByNameAsync(mongoRole.Name, CancellationToken.None);
                 Assert.Single(retrieveOneAgain.Claims);

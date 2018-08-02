@@ -10,6 +10,9 @@ using Xunit;
 using Identity.MongoDb;
 using Microsoft.Extensions.Options;
 using Mongo2Go;
+using FluentAssertions;
+using FluentAssertions.Extensions;
+using AutoFixture;
 
 namespace Identity.MongoDb.Tests
 {
@@ -17,6 +20,7 @@ namespace Identity.MongoDb.Tests
     {
         private DisposableDatabase disposableDatabase;
         private IOptions<MongoDbSettings> options;
+        private Fixture fixture = new Fixture();
 
         public MongoIdentityUserTests()
         {
@@ -27,19 +31,18 @@ namespace Identity.MongoDb.Tests
         [Fact]
         public async Task MongoIdentityUser_CanBeSavedAndRetrieved_WhenItBecomesTheSubclass()
         {
-            var username = TestUtils.RandomString(10);
-            var countryName = TestUtils.RandomString(10);
-            var loginProvider = TestUtils.RandomString(5);
-            var providerKey = TestUtils.RandomString(5);
-            var displayName = TestUtils.RandomString(5);
-            var myCustomThing = TestUtils.RandomString(10);
+            var username = fixture.Create<string>();
+            var countryName = fixture.Create<string>();
+            var loginProvider = fixture.Create<string>();
+            var providerKey = fixture.Create<string>();
+            var displayName = fixture.Create<string>();
+            var myCustomThing =fixture.Create<string>();
             var user = new MyIdentityUser(username) { MyCustomThing = myCustomThing };
             user.AddClaim(new Claim(ClaimTypes.Country, countryName));
             user.AddLogin(new MongoUserLogin(new UserLoginInfo(loginProvider, providerKey, displayName)));
 
             using (var store = new MongoUserStore<MyIdentityUser>(options))
             {
-
                 // ACT, ASSERT
                 var result = await store.CreateAsync(user, CancellationToken.None);
                 Assert.True(result.Succeeded);
@@ -66,20 +69,15 @@ namespace Identity.MongoDb.Tests
         public async Task MongoIdentityUser_ShouldSaveAndRetrieveTheFutureOccuranceCorrectly()
         {
             var lockoutEndDate = new DateTime(2017, 2, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(8996910);
-            var user = new MyIdentityUser(TestUtils.RandomString(10));
+            var user = new MyIdentityUser(fixture.Create<string>());
             user.LockUntil(lockoutEndDate);
-
-
 
             using (var store = new MongoUserStore<MyIdentityUser>(options))
             {
-
                 // ACT
                 var result = await store.CreateAsync(user, CancellationToken.None);
-
                 // ASSERT
                 Assert.True(result.Succeeded);
-
                 var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
                 Assert.Equal(user.LockoutEndDate, retrievedUser.LockoutEndDate);
             }

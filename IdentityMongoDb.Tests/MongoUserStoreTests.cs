@@ -11,6 +11,7 @@ using Xunit;
 using Mongo2Go;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using AutoFixture;
 
 namespace Identity.MongoDb.Tests
 {
@@ -18,18 +19,19 @@ namespace Identity.MongoDb.Tests
     {
         private DisposableDatabase disposableDatabase;
         private IOptions<MongoDbSettings> options;
+        private Fixture fixture = new Fixture();
 
         public MongoUserStoreTests()
         {
             disposableDatabase = new DisposableDatabase();
             options = disposableDatabase.MongoDbSettings;
+           
         }
 
         [Fact]
         public async Task MongoUserStore_ShouldPutThingsIntoUsersCollectionByDefault()
         {
-            var user = new MongoIdentityUser(TestUtils.RandomString(10));
-
+            var user = new MongoIdentityUser(fixture.Create<string>());
 
             using (var store = new MongoUserStore<MongoIdentityUser>(options))
             {
@@ -52,7 +54,7 @@ namespace Identity.MongoDb.Tests
 
             using (var userStore = new MongoUserStore<MongoIdentityUser>(options) as IUserStore<MongoIdentityUser>)
             {
-                user = new MongoIdentityUser(TestUtils.RandomString(10));
+                user = new MongoIdentityUser(fixture.Create<string>());
                 await userStore.CreateAsync(user, CancellationToken.None);
                 var retrievedUser = await userStore.FindByIdAsync(user.Id, CancellationToken.None);
                 retrievedUser.Should().NotBeNull();
