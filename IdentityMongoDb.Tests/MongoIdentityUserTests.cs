@@ -9,20 +9,19 @@ using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Identity.MongoDb;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Identity;
 using Mongo2Go;
 
 namespace Identity.MongoDb.Tests
 {
     public class MongoIdentityUserTests : IDisposable
     {
-        private MongoDbRunner runner;
+        private DisposableDatabase disposableDatabase;
         private IOptions<MongoDbSettings> options;
 
         public MongoIdentityUserTests()
         {
-            runner = MongoDbRunner.Start();
-            options = Options.Create(new MongoDbSettings() { ConnectionString = runner.ConnectionString, Database = Guid.NewGuid().ToString() });
+            disposableDatabase = new DisposableDatabase();
+            options = disposableDatabase.MongoDbSettings;
         }
 
         [Fact]
@@ -89,7 +88,7 @@ namespace Identity.MongoDb.Tests
 
         public void Dispose()
         {
-            runner.Dispose();
+            disposableDatabase.Dispose();
         }
 
         public class MyIdentityUser : MongoIdentityUser

@@ -15,13 +15,13 @@ namespace Identity.MongoDb.Tests
 {
     public class MongoIdentityRoleTests : IDisposable
     {
-        private MongoDbRunner runner;
+        private DisposableDatabase disposableDatabase;
         private IOptions<MongoDbSettings> options;
 
         public MongoIdentityRoleTests()
         {
-            runner = MongoDbRunner.Start();
-            options = Options.Create(new MongoDbSettings() { ConnectionString = runner.ConnectionString, Database = Guid.NewGuid().ToString() });
+            disposableDatabase = new DisposableDatabase();
+            options = disposableDatabase.MongoDbSettings;
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace Identity.MongoDb.Tests
 
         public void Dispose()
         {
-            runner.Dispose();
+            disposableDatabase.Dispose();
         }
     }
 }
