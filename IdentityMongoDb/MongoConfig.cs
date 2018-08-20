@@ -18,20 +18,40 @@ namespace Identity.MongoDb
 
         public static void EnsureConfigured()
         {
+            //todo figure out why it is beeing called more than one time and it is causing exception
+            try
+            {
+                        
             EnsureConfiguredImpl();
+            }
+            catch (System.Exception)
+            {
+                
+            }
         }
 
         private static void EnsureConfiguredImpl()
         {
-            LazyInitializer.EnsureInitialized(ref _initializationTarget, ref _initialized, ref _initializationLock, () =>
+            lock (_initializationLock)
             {
+               if(!_initialized){
                 Configure();
-                return null;
-            });
+                _initialized=true;
+               }
+                
+            }
+            // LazyInitializer.EnsureInitialized(ref _initializationTarget, ref _initialized, ref _initializationLock, () =>
+            // {
+            //     Configure();
+            //     _initialized = true;
+            //    // _initializationTarget = new object();
+            //     return new object();
+            // });
         }
 
         private static void Configure()
         {
+            
             RegisterConventions();
            
 
