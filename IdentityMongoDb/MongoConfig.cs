@@ -33,11 +33,7 @@ namespace Identity.MongoDb
         private static void Configure()
         {
             RegisterConventions();
-
-            BsonClassMap.RegisterClassMap<IdentityRole>(cm=>{
-              
-                cm.MapCreator(role=> new IdentityRole(role.Name));
-            });
+           
 
              BsonClassMap.RegisterClassMap<IdentityRole<string>>(cm=>{
                 cm.AutoMap();
@@ -62,17 +58,6 @@ namespace Identity.MongoDb
                     .SetIdGenerator(StringObjectIdGenerator.Instance);
                 cm.MapCreator(user => new IdentityUser<string>(user.UserName));
             });
-
-            BsonClassMap.RegisterClassMap<IdentityUser>(cm =>
-            {
-
-
-                //cm.AutoMap();
-                
-                cm.MapCreator(user => new IdentityUser(user.UserName));
-            });
-
-
 
             BsonClassMap.RegisterClassMap<MongoIdentityUser>(cm =>
             {

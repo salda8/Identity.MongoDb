@@ -9,36 +9,39 @@ using Identity.MongoDb;
 using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Mongo2Go;
+using FluentAssertions;
+using FluentAssertions.Extensions;
+using AutoFixture;
 
 namespace Identity.MongoDb.Tests
 {
     public class MongoUserStoreTests : IDisposable
     {
-        private MongoDbRunner runner;
+        private DisposableDatabase disposableDatabase;
         private IOptions<MongoDbSettings> options;
+        private Fixture fixture = new Fixture();
 
         public MongoUserStoreTests()
         {
-            runner = MongoDbRunner.Start();
-            options = Options.Create(new MongoDbSettings() { ConnectionString = runner.ConnectionString, Database = Guid.NewGuid().ToString() });
+            disposableDatabase = new DisposableDatabase();
+            options = disposableDatabase.MongoDbSettings;
+           
         }
 
         [Fact]
         public async Task MongoUserStore_ShouldPutThingsIntoUsersCollectionByDefault()
         {
-            var user = new MongoIdentityUser(TestUtils.RandomString(10));
-
+            var user = new MongoIdentityUser(fixture.Create<string>());
 
             using (var store = new MongoUserStore<MongoIdentityUser>(options))
             {
 
-                // ACT
                 var result = await store.CreateAsync(user, CancellationToken.None);
 
-                // ASSERT
-                Assert.True(result.Succeeded);
-
-                Assert.Equal(1, await store.GetUserCountAsync());
+                result.Succeeded.Should().BeTrue();
+                var count = await store.GetUserCountAsync();
+                count.Should().Be(1);
+              
 
             }
         }
@@ -51,19 +54,20 @@ namespace Identity.MongoDb.Tests
 
             using (var userStore = new MongoUserStore<MongoIdentityUser>(options) as IUserStore<MongoIdentityUser>)
             {
-                user = new MongoIdentityUser(TestUtils.RandomString(10));
+                user = new MongoIdentityUser(fixture.Create<string>());
                 await userStore.CreateAsync(user, CancellationToken.None);
                 var retrievedUser = await userStore.FindByIdAsync(user.Id, CancellationToken.None);
-                Assert.NotNull(retrievedUser);
-                Assert.Equal(user.UserName, retrievedUser.UserName);
-                Assert.Equal(user.NormalizedUserName, retrievedUser.NormalizedUserName);
+                retrievedUser.Should().NotBeNull();
+                retrievedUser.UserName.Should().Be(user.UserName);
+                retrievedUser.NormalizedUserName.Should().Be(user.NormalizedUserName);
+
             }
         }
 
 
         public void Dispose()
         {
-            runner.Dispose();
+            disposableDatabase.Dispose();
         }
     }
 }

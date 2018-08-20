@@ -9,56 +9,62 @@ using Microsoft.AspNetCore.Identity;
 using Xunit;
 using Identity.MongoDb;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Identity;
 using Mongo2Go;
+using FluentAssertions;
+using FluentAssertions.Extensions;
+using AutoFixture;
 
 namespace Identity.MongoDb.Tests
 {
     public class MongoIdentityUserTests : IDisposable
     {
-        private MongoDbRunner runner;
+        private DisposableDatabase disposableDatabase;
         private IOptions<MongoDbSettings> options;
+        private Fixture fixture = new Fixture();
 
         public MongoIdentityUserTests()
         {
-            runner = MongoDbRunner.Start();
-            options = Options.Create(new MongoDbSettings() { ConnectionString = runner.ConnectionString, Database = Guid.NewGuid().ToString() });
+            disposableDatabase = new DisposableDatabase();
+            options = disposableDatabase.MongoDbSettings;
         }
 
         [Fact]
         public async Task MongoIdentityUser_CanBeSavedAndRetrieved_WhenItBecomesTheSubclass()
         {
-            var username = TestUtils.RandomString(10);
-            var countryName = TestUtils.RandomString(10);
-            var loginProvider = TestUtils.RandomString(5);
-            var providerKey = TestUtils.RandomString(5);
-            var displayName = TestUtils.RandomString(5);
-            var myCustomThing = TestUtils.RandomString(10);
+            var username = fixture.Create<string>();
+            var countryName = fixture.Create<string>();
+            var loginProvider = fixture.Create<string>();
+            var providerKey = fixture.Create<string>();
+            var displayName = fixture.Create<string>();
+            var myCustomThing =fixture.Create<string>();
             var user = new MyIdentityUser(username) { MyCustomThing = myCustomThing };
             user.AddClaim(new Claim(ClaimTypes.Country, countryName));
             user.AddLogin(new MongoUserLogin(new UserLoginInfo(loginProvider, providerKey, displayName)));
 
             using (var store = new MongoUserStore<MyIdentityUser>(options))
             {
-
-                // ACT, ASSERT
+                
                 var result = await store.CreateAsync(user, CancellationToken.None);
-                Assert.True(result.Succeeded);
-
-                // ACT, ASSERT
+                result.Succeeded.Should().BeTrue();
+                              
                 var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
-                Assert.NotNull(retrievedUser);
-                Assert.Equal(username, retrievedUser.UserName);
-                Assert.Equal(myCustomThing, retrievedUser.MyCustomThing);
+               retrievedUser.Should().NotBeNull();
+               retrievedUser.UserName.Should().Be(username);
+               retrievedUser.MyCustomThing.Should().Be(myCustomThing);
+                //Assert.Equal(username, retrievedUser.UserName);
+               // Assert.Equal(myCustomThing, retrievedUser.MyCustomThing);
 
                 var countryClaim = retrievedUser.Claims.FirstOrDefault(x => x.ClaimType == ClaimTypes.Country);
-                Assert.NotNull(countryClaim);
-                Assert.Equal(countryName, countryClaim.ClaimValue);
+                countryClaim.Should().NotBeNull();
+                countryClaim.ClaimValue.Should().Be(countryName);
+              
 
                 var retrievedLoginProvider = retrievedUser.Logins.FirstOrDefault(x => x.LoginProvider == loginProvider);
-                Assert.NotNull(retrievedLoginProvider);
-                Assert.Equal(providerKey, retrievedLoginProvider.ProviderKey);
-                Assert.Equal(displayName, retrievedLoginProvider.ProviderDisplayName);
+                retrievedLoginProvider.Should().NotBeNull();
+                retrievedLoginProvider.ProviderKey.Should().Be(providerKey);
+                retrievedLoginProvider.ProviderDisplayName.Should().Be(displayName);
+               // Assert.Equal(providerKey, retrievedLoginProvider.ProviderKey);
+               // Assert.Equal(displayName, retrievedLoginProvider.ProviderDisplayName);
 
             }
         }
@@ -67,29 +73,25 @@ namespace Identity.MongoDb.Tests
         public async Task MongoIdentityUser_ShouldSaveAndRetrieveTheFutureOccuranceCorrectly()
         {
             var lockoutEndDate = new DateTime(2017, 2, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(8996910);
-            var user = new MyIdentityUser(TestUtils.RandomString(10));
+            var user = new MyIdentityUser(fixture.Create<string>());
             user.LockUntil(lockoutEndDate);
-
-
 
             using (var store = new MongoUserStore<MyIdentityUser>(options))
             {
-
                 // ACT
                 var result = await store.CreateAsync(user, CancellationToken.None);
-
                 // ASSERT
-                Assert.True(result.Succeeded);
-
+                result.Succeeded.Should().BeTrue();
                 var retrievedUser = await store.FindByIdAsync(user.Id, CancellationToken.None);
-                Assert.Equal(user.LockoutEndDate, retrievedUser.LockoutEndDate);
+                retrievedUser.LockoutEndDate.Instant.Should().BeSameDateAs(user.LockoutEndDate.Instant);
+               
             }
 
         }
 
         public void Dispose()
         {
-            runner.Dispose();
+            disposableDatabase.Dispose();
         }
 
         public class MyIdentityUser : MongoIdentityUser

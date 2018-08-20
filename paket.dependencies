@@ -19,3 +19,7 @@ nuget xunit
 nuget xunit.runner.visualstudio
 nuget mongo2go
 nuget OpenCover
+nuget FluentAssertions
+nuget AutoFixture.AutoMoq
+nuget machine.specifications
+nuget Machine.Specifications.Runner.VisualStudio

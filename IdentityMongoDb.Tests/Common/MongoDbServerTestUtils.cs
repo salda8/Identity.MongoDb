@@ -1,5 +1,7 @@
 ﻿using System;
 using MongoDB.Driver;
+using Mongo2Go;
+using Microsoft.Extensions.Options;
 
 namespace Identity.MongoDb.Tests.Common
 {
@@ -7,30 +9,27 @@ namespace Identity.MongoDb.Tests.Common
     {
         public static DisposableDatabase CreateDatabase() => new DisposableDatabase();
 
+    }
+
         public class DisposableDatabase : IDisposable
         {
+            private MongoDbRunner runner = MongoDbRunner.Start();
+            public IOptions<MongoDbSettings> MongoDbSettings{get;}
             private bool _disposed;
-            private readonly IMongoDatabase _database;
-            private readonly MongoClient _mongoClient;
 
             public DisposableDatabase()
             {
-                var databaseName = Guid.NewGuid().ToString("N");
-
-                _mongoClient = new MongoClient("mongodb://localhost:27017");
-                _database = _mongoClient.GetDatabase(databaseName);
+                MongoDbSettings = Options.Create(new MongoDbSettings() { ConnectionString = runner.ConnectionString, Database = Guid.NewGuid().ToString() });
             }
-
-            public IMongoDatabase Database => _database;
 
             public void Dispose()
             {
-                if (_disposed == false)
+                if (_disposed == false && !runner.Disposed)
                 {
-                    _mongoClient.DropDatabase(_database.DatabaseNamespace.DatabaseName);
+                    runner.Dispose();
                     _disposed = true;
                 }
             }
         }
-    }
+    
 }
