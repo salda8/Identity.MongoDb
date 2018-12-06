@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFrameworks>netcoreapp2.2;netcoreapp2.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <DebugType>Full</DebugType>
   </PropertyGroup>
@@ -9,13 +9,13 @@
     <PackageReference Include="AutoFixture" Version="4.5.1" />
     <PackageReference Include="FluentAssertions" Version="5.5.3" />
     <PackageReference Include="MongoDB.Driver" Version="2.7.2" />
-    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit" Version="2.4.0" />
 	<PackageReference Include="mongo2go" Version="2.2.8" />
-	<PackageReference Include="xunit.runner.console" Version="2.4.1">
+	<PackageReference Include="xunit.runner.console" Version="2.4.0">
 	  <PrivateAssets>all</PrivateAssets>
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 	</PackageReference>
-	<PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+	<PackageReference Include="xunit.runner.visualstudio" Version="2.4.0">
 	  <PrivateAssets>all</PrivateAssets>
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 	</PackageReference>
