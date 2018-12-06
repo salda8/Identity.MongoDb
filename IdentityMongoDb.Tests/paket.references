@@ -1,9 +1,0 @@
-Microsoft.Extensions.Identity.Core
-xunit
-xunit.runner.visualstudio
-dotnet-xunit
-mongo2go
-Machine.Specifications
-Machine.Specifications.Runner.VisualStudio
-FluentAssertions
-AutoFixture.AutoMoq
