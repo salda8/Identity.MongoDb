@@ -4,6 +4,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Identity.MongoDb.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace Identity.MongoDb
 {
@@ -24,11 +29,11 @@ namespace Identity.MongoDb
 
         public MongoRoleClaimStore(IOptions<MongoDbSettings> options, IEnumerable<IRoleValidator<TRole>> roleValidators, ILogger<MongoRoleClaimStore<MongoIdentityRole>> logger, ILookupNormalizer keyNormalizer)
         {
-            var database = new MongoClient(options.Value.ConnectionString).GetDatabase(options.Value.Database);
+            IMongoDatabase database = new MongoClient(options.Value.ConnectionString).GetDatabase(options.Value.Database);
             roles = database.GetCollection<TRole>("Roles");
             if (roleValidators != null)
             {
-                foreach (var v in roleValidators)
+                foreach (IRoleValidator<TRole> v in roleValidators)
                 {
                     RoleValidators.Add(v);
                 }
@@ -37,14 +42,8 @@ namespace Identity.MongoDb
             this.keyNormalizer = keyNormalizer;
         }
 
-        public virtual void Dispose()
-        {
-            // no need to dispose of anything, mongodb handles connection pooling automatically
-        }
-
-        /// <summary>
-        /// Throws if this class has been disposed.
-        /// </summary>
+        public virtual IQueryable<TRole> Roles
+            => roles.AsQueryable();
 
         /// <summary>
         /// Gets a list of validators for roles to call before persistence.
@@ -52,29 +51,12 @@ namespace Identity.MongoDb
         /// <value>A list of validators for roles to call before persistence.</value>
         public IList<IRoleValidator<TRole>> RoleValidators { get; } = new List<IRoleValidator<TRole>>();
 
-        /// <summary>
-        /// Should return <see cref="IdentityResult.Success"/> if validation is successful. This is
-        /// called before saving the role via Create or Update.
-        /// </summary>
-        /// <param name="role">The role</param>
-        /// <returns>A <see cref="IdentityResult"/> representing whether validation was successful.</returns>
-        protected virtual async Task<IdentityResult> ValidateRoleAsync(TRole role)
+        public async Task AddClaimAsync(TRole role, Claim claim, CancellationToken cancellationToken = default)
         {
-            var errors = new List<IdentityError>();
-            foreach (var v in RoleValidators)
-            {
-                var result = await v.ValidateAsync(this as RoleManager<TRole>, role);
-                if (!result.Succeeded)
-                {
-                    errors.AddRange(result.Errors);
-                }
-            }
-            if (errors.Count > 0)
-            {
-                logger.LogWarning(0, "Role {roleId} validation failed: {errors}.", await GetRoleIdAsync(role, CancellationToken.None), string.Join(";", errors.Select(e => e.Code)));
-                return IdentityResult.Failed(errors.ToArray());
-            }
-            return IdentityResult.Success;
+            TRole foundRole = await FindByIdAsync(role.Id, cancellationToken);
+
+            foundRole.Claims.Add(new MongoUserClaim(claim));
+            await UpdateAsync(foundRole, cancellationToken);
         }
 
         public virtual async Task<IdentityResult> CreateAsync(TRole role, CancellationToken token = default)
@@ -83,7 +65,7 @@ namespace Identity.MongoDb
             {
                 throw new ArgumentNullException(nameof(role));
             }
-            var result = await ValidateRoleAsync(role);
+            IdentityResult result = await ValidateRoleAsync(role);
             if (!result.Succeeded)
             {
                 return result;
@@ -91,6 +73,70 @@ namespace Identity.MongoDb
             await UpdateNormalizedRoleNameAsync(role, token);
 
             await roles.InsertOneAsync(role, cancellationToken: token);
+            return IdentityResult.Success;
+        }
+
+        public virtual async Task<IdentityResult> DeleteAsync(TRole role, CancellationToken token = default)
+        {
+            DeleteResult result = await roles.DeleteOneAsync(r => r.Id == role.Id, token);
+
+            return IdentityResult.Success;
+        }
+
+        public virtual void Dispose()
+        {
+            // no need to dispose of anything, mongodb handles connection pooling automatically
+        }
+
+        public virtual Task<TRole> FindByIdAsync(string roleId, CancellationToken token)
+                    => roles.Find(r => r.Id == roleId)
+                        .FirstOrDefaultAsync(token);
+
+        public virtual Task<TRole> FindByNameAsync(string normalizedName, CancellationToken token)
+                    => roles.Find(r => r.NormalizedName == normalizedName)
+                        .FirstOrDefaultAsync(token);
+
+        public async Task<IList<Claim>> GetClaimsAsync(TRole role, CancellationToken cancellationToken = default)
+        {
+            TRole foundRole = await FindByIdAsync(role.Id, cancellationToken);
+
+            return foundRole.Claims.Select(x => new Claim(x.ClaimType, x.ClaimValue)).ToList();
+        }
+
+        // note: can't test as of yet through integration testing because the Identity framework doesn't use this method internally anywhere
+        public virtual async Task<string> GetNormalizedRoleNameAsync(TRole role, CancellationToken cancellationToken = default)
+            => role.NormalizedName;
+
+        public virtual async Task<string> GetRoleIdAsync(TRole role, CancellationToken cancellationToken = default)
+                    => role.Id;
+
+        public virtual async Task<string> GetRoleNameAsync(TRole role, CancellationToken cancellationToken = default)
+                    => role.Name;
+
+        /// <summary>
+        /// Gets a normalized representation of the specified <paramref name="key"/>.
+        /// </summary>
+        /// <param name="key">The value to normalize.</param>
+        /// <returns>A normalized representation of the specified <paramref name="key"/>.</returns>
+        public virtual string NormalizeKey(string key) => (keyNormalizer == null) ? key : keyNormalizer.Normalize(key);
+
+        public async Task RemoveClaimAsync(TRole role, Claim claim, CancellationToken cancellationToken = default)
+        {
+            TRole foundRole = await FindByIdAsync(role.Id, cancellationToken);
+            foundRole.Claims.Remove(new MongoUserClaim(claim));
+            await UpdateAsync(foundRole, cancellationToken);
+        }
+
+        public virtual async Task SetNormalizedRoleNameAsync(TRole role, string normalizedName, CancellationToken cancellationToken = default)
+                    => role.NormalizedName = normalizedName;
+
+        public virtual async Task SetRoleNameAsync(TRole role, string roleName, CancellationToken cancellationToken = default)
+                    => role.Name = roleName;
+
+        public virtual async Task<IdentityResult> UpdateAsync(TRole role, CancellationToken token)
+        {
+            ReplaceOneResult result = await roles.ReplaceOneAsync(r => r.Id == role.Id, role, cancellationToken: token);
+            // todo low priority result based on replace result
             return IdentityResult.Success;
         }
 
@@ -104,81 +150,36 @@ namespace Identity.MongoDb
         /// </returns>
         public virtual async Task UpdateNormalizedRoleNameAsync(TRole role, CancellationToken cancellationToken = default)
         {
-            var name = await GetRoleNameAsync(role, cancellationToken);
+            string name = await GetRoleNameAsync(role, cancellationToken);
             await SetNormalizedRoleNameAsync(role, NormalizeKey(name), cancellationToken);
         }
 
-        public virtual async Task<IdentityResult> UpdateAsync(TRole role, CancellationToken token)
-        {
-            var result = await roles.ReplaceOneAsync(r => r.Id == role.Id, role, cancellationToken: token);
-            // todo low priority result based on replace result
-            return IdentityResult.Success;
-        }
-
         /// <summary>
-        /// Gets a normalized representation of the specified <paramref name="key"/>.
+        /// Throws if this class has been disposed.
         /// </summary>
-        /// <param name="key">The value to normalize.</param>
-        /// <returns>A normalized representation of the specified <paramref name="key"/>.</returns>
-        public virtual string NormalizeKey(string key)
+        /// <summary>
+        /// Should return <see cref="IdentityResult.Success"/> if validation is successful. This is
+        /// called before saving the role via Create or Update.
+        /// </summary>
+        /// <param name="role">The role</param>
+        /// <returns>A <see cref="IdentityResult"/> representing whether validation was successful.</returns>
+        protected virtual async Task<IdentityResult> ValidateRoleAsync(TRole role)
         {
-            return (keyNormalizer == null) ? key : keyNormalizer.Normalize(key);
-        }
-
-        public virtual async Task<IdentityResult> DeleteAsync(TRole role, CancellationToken token = default)
-        {
-            var result = await roles.DeleteOneAsync(r => r.Id == role.Id, token);
-
+            var errors = new List<IdentityError>();
+            foreach (IRoleValidator<TRole> v in RoleValidators)
+            {
+                IdentityResult result = await v.ValidateAsync(this as RoleManager<TRole>, role);
+                if (!result.Succeeded)
+                {
+                    errors.AddRange(result.Errors);
+                }
+            }
+            if (errors.Count > 0)
+            {
+                logger.LogWarning(0, "Role {roleId} validation failed: {errors}.", await GetRoleIdAsync(role, CancellationToken.None), string.Join(";", errors.Select(e => e.Code)));
+                return IdentityResult.Failed(errors.ToArray());
+            }
             return IdentityResult.Success;
         }
-
-        public virtual async Task<string> GetRoleIdAsync(TRole role, CancellationToken cancellationToken = default)
-            => role.Id;
-
-        public virtual async Task<string> GetRoleNameAsync(TRole role, CancellationToken cancellationToken = default)
-            => role.Name;
-
-        public virtual async Task SetRoleNameAsync(TRole role, string roleName, CancellationToken cancellationToken = default)
-            => role.Name = roleName;
-
-        // note: can't test as of yet through integration testing because the Identity framework doesn't use this method internally anywhere
-        public virtual async Task<string> GetNormalizedRoleNameAsync(TRole role, CancellationToken cancellationToken = default)
-            => role.NormalizedName;
-
-        public virtual async Task SetNormalizedRoleNameAsync(TRole role, string normalizedName, CancellationToken cancellationToken = default)
-            => role.NormalizedName = normalizedName;
-
-        public virtual Task<TRole> FindByIdAsync(string roleId, CancellationToken token)
-            => roles.Find(r => r.Id == roleId)
-                .FirstOrDefaultAsync(token);
-
-        public virtual Task<TRole> FindByNameAsync(string normalizedName, CancellationToken token)
-            => roles.Find(r => r.NormalizedName == normalizedName)
-                .FirstOrDefaultAsync(token);
-
-        public async Task<IList<Claim>> GetClaimsAsync(TRole role, CancellationToken cancellationToken = default)
-        {
-            var foundRole = await FindByIdAsync(role.Id, cancellationToken);
-
-            return foundRole.Claims.Select(x => new Claim(x.ClaimType, x.ClaimValue)).ToList();
-        }
-
-        public async Task AddClaimAsync(TRole role, Claim claim, CancellationToken cancellationToken = default)
-        {
-            var foundRole = await FindByIdAsync(role.Id, cancellationToken);
-
-            foundRole.Claims.Add(new MongoUserClaim(claim));
-            await UpdateAsync(foundRole, cancellationToken);
-        }
-
-        public async Task RemoveClaimAsync(TRole role, Claim claim, CancellationToken cancellationToken = default)
-        {
-            var foundRole = await FindByIdAsync(role.Id, cancellationToken);
-            foundRole.Claims.Remove(new MongoUserClaim(claim));
-            await UpdateAsync(foundRole, cancellationToken);
-        }
-
-        public virtual IQueryable<TRole> Roles
-            => roles.AsQueryable();
     }
 }
