@@ -1,6 +1,0 @@
-type project
-licenseUrl https://github.com/salda8/Identity.MongoDb/blob/master/LICENSE
-projectUrl https://github.com/salda8/Identity.MongoDb
-authors Salda8
-description MongoDb support for Asp.Net Core Identity
-tags MongoDb Identity Core DocumentDb 
